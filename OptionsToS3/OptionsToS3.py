@@ -5,6 +5,25 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
+import boto3
+
+import pyspark.sql.functions as F
+from pyspark.ml import Transformer
+
+class DDBDelete:
+    def __init__(self, table: str, keyGen):
+        self.table = table
+        self.keyGen = keyGen
+        
+    def process(self, df: DynamicFrame):
+        df.toDF().foreachPartition(self.delete)
+        
+    def delete(self, rows):
+        ddb_underlying_table = boto3.resource("dynamodb").Table(self.table)
+        with ddb_underlying_table.batch_writer() as batch:
+            for row in rows:
+                batch.delete_item(Key=self.keyGen(row))
+
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
@@ -16,14 +35,14 @@ job.init(args["JOB_NAME"], args)
 # Script generated for node Underlying DynamoDB
 UnderlyingDynamoDB_node1673216732174 = glueContext.create_dynamic_frame.from_catalog(
     database="quotesdb",
-    table_name="option_history_underlying_quotes",
+    table_name="option_underlying_quote_history",
     transformation_ctx="UnderlyingDynamoDB_node1673216732174",
 )
 
 # Script generated for node Options DynamoDB
 OptionsDynamoDB_node1673216729643 = glueContext.create_dynamic_frame.from_catalog(
     database="quotesdb",
-    table_name="option_history_quotes",
+    table_name="option_quote_history",
     transformation_ctx="OptionsDynamoDB_node1673216729643",
 )
 
@@ -90,7 +109,23 @@ Join_node1673216776940_resolved = Join_node1673216776940.resolveChoice(specs=[
     ("ask", "cast:double"),
     ("bid", "cast:double"),
     ('underlying_markchange', "cast:double"),
-    ('underlying_change', "cast:double")
+    ('underlying_change', "cast:double"),
+    ('underlying_ask', "cast:double"),
+    ('underlying_bid', "cast:double"),
+    ('underlying_markpercentchange', "cast:double"),
+    ('underlying_percentchange', "cast:double"),
+    ('underlying_markchange', "cast:double"),
+    ('underlying_fiftytwoweekhigh', "cast:double"),
+    ('underlying_fiftytwoweeklow', "cast:double"),
+    ('underlying_totalvolume', "cast:long"),
+    ('underlying_openprice', "cast:double"),
+    ('underlying_low', "cast:double"),
+    ('underlying_high', "cast:double"),
+    ('underlying_close', "cast:double"),
+    ('underlying_asksize', "cast:long"),
+    ('underlying_last', "cast:double"),
+    ('underlying_bidsize', "cast:long"),
+    ('underlying_mark', "cast:double")
 ])
 
 partitioned_dataframe = Join_node1673216776940_resolved.toDF().repartition(1)
@@ -103,10 +138,14 @@ S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
     connection_type="s3",
     format="csv",
     connection_options={
-        "path": "s3://tonberry-option-history-quotes",
+        "path": "s3://tonberry-option-quotes-history-staging",
         "partitionKeys": ["underlying_symbol", "underlying_date"],
     },
     transformation_ctx="S3bucket_node3",
 )
+
+DDBDelete("option_underlying_quote_history", lambda x: {"id": x.id, "timestamp": x.timestamp}).process(UnderlyingDynamoDB_node1673216732174)
+DDBDelete("option_quote_history", lambda x: {"symbol": x.symbol, "timestamp": x.timestamp }).process(OptionsDynamoDB_node1673216729643)
+
 
 job.commit()
