@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "OptionsToS3"
+version = "0.1.0"
+description = ""
+authors = ["Matthew Tondreau <mmtondreau@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "*", from = "lib" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.7,<3.8"
+boto3 = "^1.26.59"
+pyspark = "^3.3.1"
+
+[tool.poetry.group.dev.dependencies]
+awsglue = { git = "git@github.com:tonberry-org/aws-glue-libs.git", branch = "master" }
+
+[tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
