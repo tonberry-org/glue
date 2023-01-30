@@ -234,6 +234,18 @@ resource "aws_glue_catalog_table" "option_quote_history" {
   }
 }
 
+resource "aws_glue_registry" "stocks" {
+  registry_name = "stocks"
+}
+
+resource "aws_glue_schema" "option_underlying_quote_history" {
+  schema_name       = "option_underlying_quote_history"
+  registry_arn      = aws_glue_registry.stocks.arn
+  data_format       = "JSON"
+  compatibility     = "FULL_ALL"
+  schema_definition = file("./schemas/option_underlying_quote_history.json")
+}
+
 resource "aws_glue_catalog_table" "option_underlying_quote_history" {
   name          = "option_underlying_quote_history"
   database_name = aws_glue_catalog_database.quotesdb.name
@@ -252,6 +264,14 @@ resource "aws_glue_catalog_table" "option_underlying_quote_history" {
   storage_descriptor {
     location          = data.aws_dynamodb_table.option_underlying_quote_history.arn
     number_of_buckets = -1
+    schema_reference {
+      schema_id {
+        registry_name = aws_glue_registry.stocks.registry_name
+        schema_name   = aws_glue_schema.option_underlying_quote_history.schema_name
+
+      }
+      schema_version_number = "1.0"
+    }
     # parameters = {
     #   "CrawlerSchemaDeserializerVersion" = "1.0"
     #   "CrawlerSchemaSerializerVersion"   = "1.0"

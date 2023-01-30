@@ -1,4 +1,5 @@
 import sys
+from typing import Callable, Dict, Iterator, Tuple
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
@@ -6,49 +7,54 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
 import boto3
-
-import pyspark.sql.functions as F
-from pyspark.ml import Transformer
+from pyspark.sql.types import Row
 
 class DDBDelete:
-    def __init__(self, table: str, keyGen):
-        self.table = table
-        self.keyGen = keyGen
+    def __init__(self, table: str, keyGen: Callable[[Row], Dict[str, str]]) -> None:
+        table = table
+        keyGen = keyGen
         
-    def process(self, df: DynamicFrame):
+    def process(self, df: DynamicFrame) -> None:
         df.toDF().foreachPartition(self.delete)
         
-    def delete(self, rows):
+    def delete(self, rows: Iterator[Row]) -> None:
         ddb_underlying_table = boto3.resource("dynamodb").Table(self.table)
         with ddb_underlying_table.batch_writer() as batch:
             for row in rows:
                 batch.delete_item(Key=self.keyGen(row))
 
+def init() -> Tuple[GlueContext, Job]:
+    params = []
+    if '--JOB_NAME' in sys.argv:
+        params.append('JOB_NAME')
+    args = getResolvedOptions(sys.argv, params)
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
-sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
+    context = GlueContext(SparkContext.getOrCreate())
+    job = Job(context)
 
-# Script generated for node Underlying DynamoDB
-UnderlyingDynamoDB_node1673216732174 = glueContext.create_dynamic_frame.from_catalog(
+    if 'JOB_NAME' in args:
+        jobname = args['JOB_NAME']
+    else:
+        jobname = "test"
+    job.init(jobname, args)
+    return (context, job)
+
+context, job = init()
+
+underlying_dynamodb_node: DynamicFrame = context.create_dynamic_frame.from_catalog(
     database="quotesdb",
     table_name="option_underlying_quote_history",
-    transformation_ctx="UnderlyingDynamoDB_node1673216732174",
+    transformation_ctx="underlying_dynamodb_node",
 )
 
-# Script generated for node Options DynamoDB
-OptionsDynamoDB_node1673216729643 = glueContext.create_dynamic_frame.from_catalog(
+options_dynamodb_node: DynamicFrame = context.create_dynamic_frame.from_catalog(
     database="quotesdb",
     table_name="option_quote_history",
-    transformation_ctx="OptionsDynamoDB_node1673216729643",
+    transformation_ctx="options_dynamodb_node",
 )
 
-# Script generated for node Renamed keys for Join
-RenamedkeysforJoin_node1673216792458 = ApplyMapping.apply(
-    frame=UnderlyingDynamoDB_node1673216732174,
+renamed_keys_for_join_node: DynamicFrame = ApplyMapping.apply(
+    frame=underlying_dynamodb_node,
     mappings=[
         ("date", "date", "underlying_date", "date"),
         ("totalvolume", "long", "underlying_totalvolume", "long"),
@@ -77,19 +83,18 @@ RenamedkeysforJoin_node1673216792458 = ApplyMapping.apply(
         ("bid", "double", "underlying_bid", "double"),
         ("mark", "double", "underlying_mark", "double"),
     ],
-    transformation_ctx="RenamedkeysforJoin_node1673216792458",
+    transformation_ctx="renamed_keys_for_join_node",
 )
 
-# Script generated for node Join
-Join_node1673216776940 = Join.apply(
-    frame1=OptionsDynamoDB_node1673216729643,
-    frame2=RenamedkeysforJoin_node1673216792458,
+join_node: DynamicFrame = Join.apply(
+    frame1=options_dynamodb_node,
+    frame2=renamed_keys_for_join_node,
     keys1=["underlying_id"],
     keys2=["underlying_id"],
-    transformation_ctx="Join_node1673216776940",
+    transformation_ctx="join_node",
 )
 
-Join_node1673216776940_resolved = Join_node1673216776940.resolveChoice(specs=[
+join_node_resolved: DynamicFrame = join_node.resolveChoice(specs=[
     ("strikePrice", "cast:long"), 
     ("vega", "cast:double"),
     ("lowPrice", "cast:double"),
@@ -128,12 +133,11 @@ Join_node1673216776940_resolved = Join_node1673216776940.resolveChoice(specs=[
     ('underlying_mark', "cast:double")
 ])
 
-partitioned_dataframe = Join_node1673216776940_resolved.toDF().repartition(1)
-partitioned_dynamicframe = DynamicFrame.fromDF(partitioned_dataframe, glueContext, "partitioned_df")
+partitioned_dataframe: DynamicFrame = join_node_resolved.toDF().repartition(1)
+partitioned_dynamicframe: DynamicFrame = DynamicFrame.fromDF(partitioned_dataframe, context, "partitioned_df")
 
 
-# Script generated for node S3 bucket
-S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
+context.write_dynamic_frame.from_options(
     frame=partitioned_dynamicframe,
     connection_type="s3",
     format="csv",
@@ -144,8 +148,8 @@ S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
     transformation_ctx="S3bucket_node3",
 )
 
-DDBDelete("option_underlying_quote_history", lambda x: {"id": x.id, "timestamp": x.timestamp}).process(UnderlyingDynamoDB_node1673216732174)
-DDBDelete("option_quote_history", lambda x: {"symbol": x.symbol, "timestamp": x.timestamp }).process(OptionsDynamoDB_node1673216729643)
-
+DDBDelete("option_underlying_quote_history", lambda x: {"id": x.id, "timestamp": x.timestamp}).process(underlying_dynamodb_node)
+DDBDelete("option_quote_history", lambda x: {"symbol": x.symbol, "timestamp": x.timestamp }).process(options_dynamodb_node)
 
 job.commit()
+

@@ -162,6 +162,10 @@ data "aws_iam_policy_document" "glue" {
   }
 }
 
+resource "aws_iam_policy" "glue-general-purpose" {
+  name   = "GlueGeneralPurpose"
+  policy = data.aws_iam_policy_document.glue.json
+}
 
 resource "aws_iam_role" "glue-general-purpose" {
   name               = "AWSGlueServiceRole-GeneralPurpose"
@@ -171,10 +175,7 @@ resource "aws_iam_role" "glue-general-purpose" {
     data.aws_iam_policy.ddb.arn,
     data.aws_iam_policy.s3.arn,
     data.aws_iam_policy.glue.arn,
+    aws_iam_policy.glue-general-purpose.arn,
   ]
 
-  inline_policy {
-    name   = "Glue"
-    policy = data.aws_iam_policy_document.glue.json
-  }
 }

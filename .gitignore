@@ -8,4 +8,5 @@ __pycache__
 .terraform
 local.env.sh
 local.env.ps1
+.ipynb_checkpoints/
 
