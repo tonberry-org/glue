@@ -11,8 +11,8 @@ from pyspark.sql.types import Row
 
 class DDBDelete:
     def __init__(self, table: str, keyGen: Callable[[Row], Dict[str, str]]) -> None:
-        table = table
-        keyGen = keyGen
+        self.table = table
+        self.keyGen = keyGen
         
     def process(self, df: DynamicFrame) -> None:
         df.toDF().foreachPartition(self.delete)
