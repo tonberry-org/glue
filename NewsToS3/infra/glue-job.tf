@@ -9,6 +9,7 @@ resource "aws_glue_job" "options_to_s3" {
   number_of_workers = 4
   worker_type       = "G.1X"
   max_retries       = 0
+  glue_version      = "3.0"
 
   default_arguments = {
     "--TempDir"                          = "s3://${data.aws_s3_bucket.assets.bucket}/temporary/"
