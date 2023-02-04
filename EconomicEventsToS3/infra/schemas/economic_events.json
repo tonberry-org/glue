@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "The Category schema",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "id": {
+      "type": "string"
+    },
+    "actual": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "change": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "change_percentage": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "comparison": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "estimate": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "period": {
+      "type": "string"
+    },
+    "previous": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "type": {
+      "type": "string"
+    }
+  }
+}
