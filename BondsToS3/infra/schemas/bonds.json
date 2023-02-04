@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "The bonds schema",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "bond": {
+      "type": "string"
+    },
+    "adjusted_close": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "close": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "high": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "low": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "open": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "volume": {
+      "type": "integer"
+    }
+  }
+}

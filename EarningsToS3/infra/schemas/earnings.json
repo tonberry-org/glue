@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "The earnings schema",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "actual": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "before_after_market": {
+      "type": "string",
+      "enum": ["AfterMarket", "BeforeMarket"]
+    },
+    "code": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "difference": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "estimate": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "percent": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "report_date": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "path": "common"
+    },
+    {
+      "path": "EarningsToS3"
+    },
+    {
+      "path": "BondsToS3"
+    },
+    {
+      "path": "EconomicEventsToS3"
+    },
+    {
+      "path": "MacroToS3"
+    },
+    {
+      "path": "EODToS3"
+    },
+    {
+      "path": "NewsToS3"
+    },
+    {
+      "path": "OptionsToS3"
+    }
+  ]
+}
