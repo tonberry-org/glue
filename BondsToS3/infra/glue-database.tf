@@ -1,14 +1,14 @@
-resource "aws_glue_catalog_database" "news" {
-  name = "news"
+resource "aws_glue_catalog_database" "bonds" {
+  name = "bonds"
 }
 
-resource "aws_glue_catalog_table" "news" {
-  name          = "news"
-  database_name = aws_glue_catalog_database.news.name
+resource "aws_glue_catalog_table" "bonds" {
+  name          = "bonds"
+  database_name = aws_glue_catalog_database.bonds.name
   table_type    = "EXTERNAL_TABLE"
   owner         = "owner"
   storage_descriptor {
-    location          = data.aws_dynamodb_table.news.arn
+    location          = data.aws_dynamodb_table.bonds.arn
     number_of_buckets = -1
 
     ser_de_info {
@@ -25,14 +25,14 @@ resource "aws_glue_catalog_table" "news" {
   }
 }
 
-resource "aws_glue_registry" "news" {
-  registry_name = "news"
+resource "aws_glue_registry" "bonds" {
+  registry_name = "bonds"
 }
 
 resource "aws_glue_schema" "schema" {
-  schema_name       = "news"
-  registry_arn      = aws_glue_registry.news.arn
+  schema_name       = "bonds"
+  registry_arn      = aws_glue_registry.bonds.arn
   data_format       = "JSON"
   compatibility     = "FULL_ALL"
-  schema_definition = file("./schemas/news.json")
+  schema_definition = file("./schemas/bonds.json")
 }

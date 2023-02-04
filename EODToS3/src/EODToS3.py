@@ -42,14 +42,14 @@ def init() -> Tuple[GlueContext, Job]:
 
 context, job = init()
 
-news_dynamodb_node: DynamicFrame = context.create_dynamic_frame.from_catalog(
-    database="news",
-    table_name="news",
-    transformation_ctx="news_dynamodb_node",
+eod_prices_dynamodb_node: DynamicFrame = context.create_dynamic_frame.from_catalog(
+    database="eod_prices",
+    table_name="eod_prices",
+    transformation_ctx="eod_prices_dynamodb_node",
 )
 
 
-transform_node = news_dynamodb_node.toDF().withColumn('tags', concat_ws(',', col('tags')))
+transform_node = eod_prices_dynamodb_node.toDF().withColumn('tags', concat_ws(',', col('tags')))
 transform_node = transform_node.withColumn('symbols', concat_ws(',', col('symbols')))
 transform_node = transform_node.withColumn('neg_sentiment', coalesce(col('sentiment.neg.long'), col('sentiment.neg.double')))
 transform_node = transform_node.withColumn('pos_sentiment', coalesce(col('sentiment.pos.long'), col('sentiment.pos.double')))
@@ -68,13 +68,13 @@ context.write_dynamic_frame.from_options(
     connection_type="s3",
     format="csv",
     connection_options={
-        "path": "s3://tonberry-news-staging",
+        "path": "s3://tonberry-eod_prices-staging",
         "partitionKeys": ["symbol", "date"],
     },
     transformation_ctx="S3bucket_node3",
 )
 
-DDBDelete("news", lambda x: {"date": x['date'], "symbol:link": x['symbol:link'] }).process(news_dynamodb_node)
+DDBDelete("eod_prices", lambda x: {"date": x['date'], "symbol:link": x['symbol:link'] }).process(eod_prices_dynamodb_node)
 
 job.commit()
 

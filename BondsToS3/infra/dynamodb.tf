@@ -1,3 +1,3 @@
-data "aws_dynamodb_table" "news" {
-  name = "news"
+data "aws_dynamodb_table" "bonds" {
+  name = "bonds"
 }
