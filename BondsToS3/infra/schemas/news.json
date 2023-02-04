@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "The Category schema",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "totalvolume": {
+      "type": "integer"
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "openprice": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "description": {
+      "type": "string"
+    },
+    "delayed": {
+      "type": "boolean"
+    },
+    "lowprice": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "highprice": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "id": {
+      "type": "string"
+    },
+    "close": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "fiftytwoweekhigh": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "asksize": {
+      "type": "integer"
+    },
+    "markpercentchange": {
+      "type": "integer"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "percentchange": {
+      "type": "integer"
+    },
+    "last": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "bidsize": {
+      "type": "integer"
+    },
+    "change": {
+      "type": "integer"
+    },
+    "fiftytwoweeklow": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "tradetime": {
+      "type": "integer"
+    },
+    "markchange": {
+      "type": "integer"
+    },
+    "quotetime": {
+      "type": "integer"
+    },
+    "ask": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "exchangename": {
+      "type": "string"
+    },
+    "bid": {
+      "type": "string",
+      "format": "decimal"
+    },
+    "mark": {
+      "type": "string",
+      "format": "decimal"
+    }
+  }
+}
