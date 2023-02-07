@@ -9,35 +9,38 @@ from awsglue.dynamicframe import DynamicFrame
 import boto3
 from pyspark.sql.types import Row
 
+
 class DDBDelete:
     def __init__(self, table: str, keyGen: Callable[[Row], Dict[str, str]]) -> None:
         self.table = table
         self.keyGen = keyGen
-        
+
     def process(self, df: DynamicFrame) -> None:
         df.toDF().foreachPartition(self.delete)
-        
+
     def delete(self, rows: Iterator[Row]) -> None:
         ddb_underlying_table = boto3.resource("dynamodb").Table(self.table)
         with ddb_underlying_table.batch_writer() as batch:
             for row in rows:
                 batch.delete_item(Key=self.keyGen(row))
 
+
 def init() -> Tuple[GlueContext, Job]:
     params = []
-    if '--JOB_NAME' in sys.argv:
-        params.append('JOB_NAME')
+    if "--JOB_NAME" in sys.argv:
+        params.append("JOB_NAME")
     args = getResolvedOptions(sys.argv, params)
 
     context = GlueContext(SparkContext.getOrCreate())
     job = Job(context)
 
-    if 'JOB_NAME' in args:
-        jobname = args['JOB_NAME']
+    if "JOB_NAME" in args:
+        jobname = args["JOB_NAME"]
     else:
         jobname = "test"
     job.init(jobname, args)
     return (context, job)
+
 
 context, job = init()
 
@@ -94,62 +97,70 @@ join_node: DynamicFrame = Join.apply(
     transformation_ctx="join_node",
 )
 
-join_node_resolved: DynamicFrame = join_node.resolveChoice(specs=[
-    ("strikePrice", "cast:long"), 
-    ("vega", "cast:double"),
-    ("lowPrice", "cast:double"),
-    ("theoreticalOptionValue", "cast:double"),
-    ("percentChange", "cast:double"),
-    ("volatility", "cast:double"),
-    ("markPercentChange", "cast:double"),
-    ("markChange", "cast:double"),
-    ("netChange", "cast:double"),
-    ("closePrice", "cast:double"),
-    ("theta", "cast:double"),
-    ("highPrice", "cast:double"),
-    ("delta", "cast:double"),
-    ("rho", "cast:double"),
-    ("timeValue", "cast:double"),
-    ("gamma", "cast:double"),
-    ("ask", "cast:double"),
-    ("bid", "cast:double"),
-    ('underlying_markchange', "cast:double"),
-    ('underlying_change', "cast:double"),
-    ('underlying_ask', "cast:double"),
-    ('underlying_bid', "cast:double"),
-    ('underlying_markpercentchange', "cast:double"),
-    ('underlying_percentchange', "cast:double"),
-    ('underlying_markchange', "cast:double"),
-    ('underlying_fiftytwoweekhigh', "cast:double"),
-    ('underlying_fiftytwoweeklow', "cast:double"),
-    ('underlying_totalvolume', "cast:long"),
-    ('underlying_openprice', "cast:double"),
-    ('underlying_low', "cast:double"),
-    ('underlying_high', "cast:double"),
-    ('underlying_close', "cast:double"),
-    ('underlying_asksize', "cast:long"),
-    ('underlying_last', "cast:double"),
-    ('underlying_bidsize', "cast:long"),
-    ('underlying_mark', "cast:double")
-])
+join_node_resolved: DynamicFrame = join_node.resolveChoice(
+    specs=[
+        ("strikePrice", "cast:long"),
+        ("vega", "cast:double"),
+        ("lowPrice", "cast:double"),
+        ("theoreticalOptionValue", "cast:double"),
+        ("percentChange", "cast:double"),
+        ("volatility", "cast:double"),
+        ("markPercentChange", "cast:double"),
+        ("markChange", "cast:double"),
+        ("netChange", "cast:double"),
+        ("closePrice", "cast:double"),
+        ("theta", "cast:double"),
+        ("highPrice", "cast:double"),
+        ("delta", "cast:double"),
+        ("rho", "cast:double"),
+        ("timeValue", "cast:double"),
+        ("gamma", "cast:double"),
+        ("ask", "cast:double"),
+        ("bid", "cast:double"),
+        ("underlying_markchange", "cast:double"),
+        ("underlying_change", "cast:double"),
+        ("underlying_ask", "cast:double"),
+        ("underlying_bid", "cast:double"),
+        ("underlying_markpercentchange", "cast:double"),
+        ("underlying_percentchange", "cast:double"),
+        ("underlying_markchange", "cast:double"),
+        ("underlying_fiftytwoweekhigh", "cast:double"),
+        ("underlying_fiftytwoweeklow", "cast:double"),
+        ("underlying_totalvolume", "cast:long"),
+        ("underlying_openprice", "cast:double"),
+        ("underlying_low", "cast:double"),
+        ("underlying_high", "cast:double"),
+        ("underlying_close", "cast:double"),
+        ("underlying_asksize", "cast:long"),
+        ("underlying_last", "cast:double"),
+        ("underlying_bidsize", "cast:long"),
+        ("underlying_mark", "cast:double"),
+    ]
+)
 
 partitioned_dataframe: DynamicFrame = join_node_resolved.toDF().repartition(1)
-partitioned_dynamicframe: DynamicFrame = DynamicFrame.fromDF(partitioned_dataframe, context, "partitioned_df")
+partitioned_dynamicframe: DynamicFrame = DynamicFrame.fromDF(
+    partitioned_dataframe, context, "partitioned_df"
+)
 
 
 context.write_dynamic_frame.from_options(
     frame=partitioned_dynamicframe,
     connection_type="s3",
-    format="csv",
+    format="parquet",
     connection_options={
         "path": "s3://tonberry-option-quotes-history-staging",
         "partitionKeys": ["underlying_symbol", "underlying_date"],
+        "compression": "gzip",
     },
     transformation_ctx="S3bucket_node3",
 )
 
-DDBDelete("option_underlying_quote_history", lambda x: {"id": x.id, "timestamp": x.timestamp}).process(underlying_dynamodb_node)
-DDBDelete("option_quote_history", lambda x: {"symbol": x.symbol, "timestamp": x.timestamp }).process(options_dynamodb_node)
+DDBDelete(
+    "option_underlying_quote_history", lambda x: {"id": x.id, "timestamp": x.timestamp}
+).process(underlying_dynamodb_node)
+DDBDelete(
+    "option_quote_history", lambda x: {"symbol": x.symbol, "timestamp": x.timestamp}
+).process(options_dynamodb_node)
 
 job.commit()
-
