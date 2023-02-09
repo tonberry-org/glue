@@ -4,6 +4,9 @@
       "path": "common"
     },
     {
+      "path": "PublishAllToS3"
+    },
+    {
       "path": "EarningsToS3"
     },
     {
