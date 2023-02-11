@@ -8,3 +8,7 @@ resource "aws_s3_object" "script" {
   source = "../src/${local.project_name}.py"
   etag   = filemd5("../src/${local.project_name}.py")
 }
+
+data "aws_s3_bucket" "raw" {
+  bucket = "tonberry-news-raw"
+}

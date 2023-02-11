@@ -62,6 +62,7 @@ context.write_dynamic_frame.from_options(
     connection_options={
         "path": "s3://tonberry-macro-indicators-staging",
         "partitionKeys": ["indicator"],
+        "compression": "gzip"
     },
     transformation_ctx="S3bucket_node3",
 )

@@ -1,3 +1,3 @@
-data "aws_dynamodb_table" "macro_indicators" {
-  name = "macro_indicators"
+data "aws_dynamodb_table" "market_cap" {
+  name = "market_cap"
 }
