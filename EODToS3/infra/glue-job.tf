@@ -6,7 +6,7 @@ resource "aws_glue_job" "job" {
   role_arn = data.aws_iam_role.glue_general_purpose.arn
 
   execution_class   = "FLEX"
-  number_of_workers = 4
+  number_of_workers = 10
   worker_type       = "G.1X"
   max_retries       = 0
   glue_version      = "3.0"
@@ -23,6 +23,7 @@ resource "aws_glue_job" "job" {
     "--job-bookmark-option"              = "job-bookmark-enable"
     "--job-language"                     = "python"
     "--spark-event-logs-path"            = "s3://${data.aws_s3_bucket.assets.bucket}/sparkHistoryLogs/"
+    "--enable-auto-scaling"              = "true"
   }
   command {
     script_location = "s3://${data.aws_s3_bucket.assets.bucket}/${aws_s3_object.script.key}"
