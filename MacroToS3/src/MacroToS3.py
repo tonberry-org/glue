@@ -48,9 +48,7 @@ df = df.withColumn("year", year(col("date")))
 
 transform_node = DynamicFrame.fromDF(df, context, "transformed")
 
-partitioned_dataframe: DynamicFrame = macro_indicators_dynamodb_node.toDF().repartition(
-    1
-)
+partitioned_dataframe: DynamicFrame = transform_node.toDF().repartition(1)
 partitioned_dynamicframe: DynamicFrame = DynamicFrame.fromDF(
     partitioned_dataframe, context, "partitioned_df"
 )
@@ -62,7 +60,7 @@ context.write_dynamic_frame.from_options(
     connection_options={
         "path": "s3://tonberry-macro-indicators-staging",
         "partitionKeys": ["indicator"],
-        "compression": "gzip"
+        "compression": "gzip",
     },
     transformation_ctx="S3bucket_node3",
 )
