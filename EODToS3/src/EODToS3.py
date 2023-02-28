@@ -35,17 +35,23 @@ eod_prices_s3_frame = context.create_dynamic_frame.from_catalog(
     transformation_ctx="eod_prices_s3_frame",
 )
 
-resolved_frame = eod_prices_s3_frame.resolveChoice(specs=[
-    ("open", "cast:double"),
-    ("high", "cast:double"),
-    ("low", "cast:double"),
-    ("close", "cast:double"),
-    ("adjusted_close", "cast:double"),
-    ("volume", "cast:int"),
-])
+resolved_frame = eod_prices_s3_frame.resolveChoice(
+    specs=[
+        ("open", "cast:double"),
+        ("high", "cast:double"),
+        ("low", "cast:double"),
+        ("close", "cast:double"),
+        ("adjusted_close", "cast:double"),
+        ("volume", "cast:long"),
+    ]
+)
 
-df = resolved_frame.toDF().withColumn('date', to_date(col('date'))).withColumn('year', year(col('date')))
-to_date_frame =  DynamicFrame.fromDF(df, context, 'transformed')
+df = (
+    resolved_frame.toDF()
+    .withColumn("date", to_date(col("date")))
+    .withColumn("year", year(col("date")))
+)
+to_date_frame = DynamicFrame.fromDF(df, context, "transformed")
 
 
 partitioned_dataframe: DynamicFrame = to_date_frame.toDF().repartition(10)
