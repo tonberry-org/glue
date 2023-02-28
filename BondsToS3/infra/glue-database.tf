@@ -16,7 +16,7 @@ resource "aws_glue_catalog_table" "tonberry_bonds_raw" {
     number_of_buckets = -1
     ser_de_info {
       parameters = {
-        "paths" = "adjusted_close,close,date,high,low,open,volume"
+        "paths" = "adjusted_close,bond,close,date,high,low,open,volume"
 
       }
       serialization_library = "org.openx.data.jsonserde.JsonSerDe"

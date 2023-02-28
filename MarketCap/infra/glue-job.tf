@@ -2,7 +2,7 @@
 
 
 resource "aws_glue_job" "job" {
-  name     = "MarketCap"
+  name     = "MarketCapToS3"
   role_arn = data.aws_iam_role.glue_general_purpose.arn
 
   execution_class   = "FLEX"
@@ -30,8 +30,8 @@ resource "aws_glue_job" "job" {
 }
 
 resource "aws_glue_trigger" "options_to_s3" {
-  name     = "FivePastMidnightUTC"
-  schedule = "cron(05 0 * * ? *)"
+  name     = "${local.project_name}-FivePastMidnightUTC"
+  schedule = "cron(15 9 * * ? *)"
   type     = "SCHEDULED"
 
   actions {

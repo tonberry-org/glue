@@ -31,7 +31,7 @@ resource "aws_glue_job" "job" {
 
 resource "aws_glue_trigger" "options_to_s3" {
   name     = "FivePastMidnightUTC"
-  schedule = "cron(05 0 * * ? *)"
+  schedule = "cron(15 9 * * ? *)"
   type     = "SCHEDULED"
 
   actions {

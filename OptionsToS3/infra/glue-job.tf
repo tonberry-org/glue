@@ -29,7 +29,7 @@ resource "aws_glue_job" "options_to_s3" {
 
 resource "aws_glue_trigger" "options_to_s3" {
   name     = "Daily"
-  schedule = "cron(0 08 * * ? *)"
+  schedule = "cron(15 9 * * ? *)"
   type     = "SCHEDULED"
 
   actions {

@@ -2,29 +2,6 @@ resource "aws_glue_catalog_database" "news" {
   name = "news"
 }
 
-resource "aws_glue_catalog_table" "news" {
-  name          = "news"
-  database_name = aws_glue_catalog_database.news.name
-  table_type    = "EXTERNAL_TABLE"
-  owner         = "owner"
-  storage_descriptor {
-    location          = data.aws_dynamodb_table.news.arn
-    number_of_buckets = -1
-
-    ser_de_info {
-      parameters = {}
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      parameters,
-      storage_descriptor[0].parameters,
-      storage_descriptor[0].columns
-    ]
-  }
-}
-
 resource "aws_glue_catalog_table" "tonberry_news_raw" {
   name          = "tonberry_news_raw"
   database_name = aws_glue_catalog_database.news.name
